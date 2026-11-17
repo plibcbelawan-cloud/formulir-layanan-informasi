@@ -1,7 +1,113 @@
-<iframe
-  src="https://script.google.com/macros/s/AKfycbzomT38Zkqqf4oWQii9LLfpFyzVsfQPShv2ZEyT-f2NP1IGPu1B8sj6pskfVDywltcc/exec"
-  title="Form Layanan Informasi"
-  width="100%" height="900"
-  style="border:0; max-width:560px; display:block; margin:0 auto;"
-  loading="lazy">
-</iframe>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Form Layanan Informasi</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #eef2f8; color: #1f2937; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
+  .head { background: #0b3d91; color: #fff; border-radius: 14px 14px 0 0; padding: 20px; }
+  .head h1 { margin: 0 0 4px; font-size: 19px; }
+  .head p { margin: 0; font-size: 13px; opacity: .85; }
+  .card { background: #fff; border-radius: 0 0 14px 14px; padding: 20px; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+  input, textarea { width: 100%; padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-family: inherit; }
+  input:focus, textarea:focus { outline: none; border-color: #0b3d91; box-shadow: 0 0 0 3px rgba(11,61,145,.15); }
+  textarea { min-height: 120px; resize: vertical; }
+  .note { font-size: 12px; color: #64748b; margin-top: 14px; }
+  button { margin-top: 18px; width: 100%; padding: 13px; border: 0; border-radius: 8px; background: #f2a900; color: #1f2937; font-size: 15px; font-weight: 700; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .err { color: #b91c1c; font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .done { text-align: center; padding: 20px 0; }
+  .done .ic { font-size: 46px; }
+  .done h2 { margin: 8px 0; font-size: 18px; }
+  .done code { background: #eef2f8; padding: 4px 10px; border-radius: 6px; font-size: 16px; font-weight: 700; }
+  .hp-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Layanan Informasi</h1>
+    <p>Silakan isi data dan pertanyaan Anda. Petugas kami akan segera melayani.</p>
+  </div>
+  <div class="card">
+    <form id="f">
+      <label for="antrian">Nomor Antrian</label>
+      <input id="antrian" required maxlength="20" placeholder="Lihat nomor pada tiket antrian Anda" autocapitalize="characters">
+
+      <label for="nama">Nama Lengkap</label>
+      <input id="nama" required maxlength="100" autocomplete="name">
+
+      <label for="instansi">Asal Instansi / PT</label>
+      <input id="instansi" required maxlength="150">
+
+      <label for="hp">Nomor HP / WhatsApp</label>
+      <input id="hp" required inputmode="tel" maxlength="20" placeholder="08xxxxxxxxxx">
+
+      <label for="pertanyaan">Pertanyaan</label>
+      <textarea id="pertanyaan" required maxlength="2000"></textarea>
+
+      <!-- jebakan bot: manusia tidak melihat kolom ini -->
+      <div class="hp-trap" aria-hidden="true">
+        <label for="website">Website</label><input id="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <p class="note">Data Anda hanya digunakan untuk keperluan pelayanan informasi.</p>
+      <button id="btn" type="submit">Kirim Pertanyaan</button>
+      <div class="err" id="err"></div>
+    </form>
+
+    <div class="done" id="done" style="display:none">
+      <div class="ic">✅</div>
+      <h2>Terima kasih!</h2>
+      <p>Pertanyaan Anda sudah kami terima.<br>Nomor antrian: <code id="nomor"></code></p>
+      <p class="note">Silakan menunggu, petugas akan memanggil nomor antrian Anda.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // URL Web App Apps Script (yang berakhiran /exec, TANPA /u/2/)
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzomT38Zkqqf4oWQii9LLfpFyzVsfQPShv2ZEyT-f2NP1IGPu1B8sj6pskfVDywltcc/exec';
+
+  const val = id => document.getElementById(id).value;
+
+  document.getElementById('f').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn');
+    const err = document.getElementById('err');
+    err.textContent = '';
+    btn.disabled = true; btn.textContent = 'Mengirim...';
+
+    const data = {
+      antrian: val('antrian'), nama: val('nama'), instansi: val('instansi'),
+      hp: val('hp'), pertanyaan: val('pertanyaan'), website: val('website')
+    };
+
+    try {
+      // text/plain + tanpa cookie => tidak terpengaruh akun Google yang sedang login
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data),
+        credentials: 'omit',
+        redirect: 'follow'
+      });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Gagal mengirim.');
+      document.getElementById('f').style.display = 'none';
+      document.getElementById('nomor').textContent = out.antrian;
+      document.getElementById('done').style.display = 'block';
+    } catch (ex) {
+      err.textContent = (ex && ex.message && ex.message !== 'Failed to fetch')
+        ? ex.message
+        : 'Gagal terhubung. Periksa koneksi internet lalu coba lagi.';
+      btn.disabled = false; btn.textContent = 'Kirim Pertanyaan';
+    }
+  });
+</script>
+</body>
+</html>
