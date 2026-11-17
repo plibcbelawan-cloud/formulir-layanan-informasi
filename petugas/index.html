@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard Layanan Informasi</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #eef2f8; color: #1f2937; }
+  header { background: #0b3d91; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 17px; }
+  header small { opacity: .8; font-size: 12px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 18px 16px 40px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .tab { padding: 9px 16px; border-radius: 8px; border: 0; background: #dbe3f0; font-weight: 600; font-size: 14px; cursor: pointer; color: #1f2937; }
+  .tab.on { background: #0b3d91; color: #fff; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .stat { background: #fff; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+  .stat .lbl { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .4px; }
+  .stat .val { font-size: 30px; font-weight: 700; color: #0b3d91; margin: 6px 0 2px; }
+  .stat .sub { font-size: 12px; color: #64748b; }
+  h2 { font-size: 15px; margin: 26px 0 10px; display: flex; align-items: center; gap: 8px; }
+  .count { background: #f2a900; color: #1f2937; border-radius: 10px; padding: 1px 9px; font-size: 12px; }
+
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .item { background: #fff; border-radius: 10px; padding: 12px 16px; cursor: pointer; border-left: 4px solid #f2a900; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
+  .item:hover { background: #f8fafc; }
+  .item.proses { border-left-color: #0b3d91; }
+  .item.lama { border-left-color: #dc2626; }
+  .item .top { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+  .item .time { font-size: 12px; color: #64748b; white-space: nowrap; text-align: right; }
+  .item .wait { display: block; font-weight: 600; }
+  .item.lama .wait { color: #dc2626; }
+  .item .ins { font-size: 12px; color: #64748b; }
+  .item .q { font-size: 13px; margin-top: 4px; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .empty { background: #fff; border-radius: 10px; padding: 18px; text-align: center; color: #94a3b8; font-size: 13px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e0e7ff; color: #0b3d91; white-space: nowrap; }
+  .badge.Selesai { background: #dcfce7; color: #166534; }
+  .badge.Baru { background: #fef3c7; color: #92400e; }
+  .no { background: #0b3d91; color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 12px; margin-right: 4px; }
+  .no.big { font-size: 16px; padding: 3px 10px; }
+
+  /* riwayat */
+  .datebar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #fff; padding: 12px 14px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.05); margin-bottom: 14px; }
+  .datebar input[type=date] { width: auto; padding: 8px 10px; font-size: 15px; cursor: pointer; }
+  .datebar .lbl { font-weight: 600; font-size: 14px; }
+  .tblwrap { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.05); overflow-x: auto; margin-top: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; background: #f1f5f9; padding: 10px 12px; font-size: 12px; color: #475569; white-space: nowrap; }
+  td { padding: 10px 12px; border-top: 1px solid #eef2f7; vertical-align: top; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: #f8fafc; }
+  td.clip { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* login & form */
+  #login { max-width: 340px; margin: 80px auto; background: #fff; padding: 24px; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+  #login h3 { margin: 0 0 14px; }
+  input, textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-family: inherit; }
+  textarea { min-height: 90px; resize: vertical; }
+  .btn { padding: 10px 14px; border: 0; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .b-blue { background: #0b3d91; color: #fff; }
+  .b-green { background: #16a34a; color: #fff; }
+  .b-gray { background: #e2e8f0; color: #1f2937; }
+  .b-wa { background: #25d366; color: #fff; }
+  .err { color: #b91c1c; font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .ok { color: #166534; }
+
+  /* modal detail */
+  #modal { position: fixed; inset: 0; background: rgba(15,23,42,.5); display: none; align-items: center; justify-content: center; padding: 16px; }
+  #modal .box { background: #fff; border-radius: 14px; width: 100%; max-width: 580px; max-height: 92vh; overflow: auto; padding: 22px; }
+  .row { margin-bottom: 12px; }
+  .row .k { font-size: 12px; color: #64748b; margin-bottom: 3px; }
+  .row .v { font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+  .qbox { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+  .times { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #f8fafc; border-radius: 8px; padding: 10px; font-size: 12px; margin: 12px 0; }
+  .times b { display: block; font-size: 13px; color: #1f2937; margin-top: 2px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .hint { font-size: 12px; color: #64748b; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h3>Dashboard Petugas</h3>
+  <input id="pin" type="password" inputmode="numeric" placeholder="Masukkan PIN" onkeydown="if(event.key==='Enter')masuk()">
+  <button class="btn b-blue" style="width:100%;margin-top:12px" onclick="masuk()">Masuk</button>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div><h1>Layanan Informasi — Dashboard Petugas</h1><small id="upd"></small></div>
+    <button class="btn b-gray" onclick="muatSemua()">↻ Muat ulang</button>
+  </header>
+  <main>
+    <div class="tabs">
+      <button class="tab on" id="tabHari" onclick="pindahTab('hari')">Layanan Hari Ini</button>
+      <button class="tab" id="tabRiwayat" onclick="pindahTab('riwayat')">📅 Riwayat</button>
+    </div>
+
+    <!-- ===== TAB HARI INI ===== -->
+    <section id="secHari">
+      <div class="stats">
+        <div class="stat"><div class="lbl">Pertanyaan Hari Ini</div><div class="val" id="sHari">0</div><div class="sub" id="sSelesai"></div></div>
+        <div class="stat"><div class="lbl">Rata-rata Waktu Penyelesaian</div><div class="val" id="sRata">–</div><div class="sub" id="sRataAll"></div></div>
+        <div class="stat"><div class="lbl">Belum Dibaca</div><div class="val" id="sBaru">0</div><div class="sub">menunggu dilayani</div></div>
+      </div>
+
+      <h2>Pertanyaan Masuk (Belum Dibaca) <span class="count" id="cBaru">0</span></h2>
+      <div class="list" id="lBaru"></div>
+
+      <h2>Sedang Diproses / Belum Selesai <span class="count" id="cProses">0</span></h2>
+      <div class="list" id="lProses"></div>
+    </section>
+
+    <!-- ===== TAB RIWAYAT ===== -->
+    <section id="secRiwayat" style="display:none">
+      <div class="datebar">
+        <span class="lbl">Tanggal:</span>
+        <button class="btn b-gray" onclick="geserTgl(-1)" title="Hari sebelumnya">‹</button>
+        <input type="date" id="tgl" onchange="muatRiwayat()" onclick="try{this.showPicker()}catch(e){}">
+        <button class="btn b-gray" onclick="geserTgl(1)" title="Hari berikutnya">›</button>
+        <button class="btn b-gray" onclick="setTgl(hariIniStr())">Hari ini</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="lbl">Total Pertanyaan</div><div class="val" id="rTotal">0</div><div class="sub" id="rTglTeks"></div></div>
+        <div class="stat"><div class="lbl">Selesai Dilayani</div><div class="val" id="rSelesai">0</div><div class="sub" id="rBelum"></div></div>
+        <div class="stat"><div class="lbl">Rata-rata Waktu Penyelesaian</div><div class="val" id="rRata">–</div><div class="sub">pada tanggal ini</div></div>
+      </div>
+      <div class="tblwrap">
+        <table>
+          <thead><tr><th>No. Antrian</th><th>Masuk</th><th>Nama / Instansi</th><th>Pertanyaan</th><th>Jawaban</th><th>Petugas</th><th>Durasi</th><th>Status</th></tr></thead>
+          <tbody id="rBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="modal" onclick="if(event.target.id==='modal')tutup()">
+  <div class="box" id="detail"></div>
+</div>
+
+<script>
+  // ====== PENGATURAN ======
+  // URL Web App Apps Script (yang berakhiran /exec, TANPA /u/2/)
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzomT38Zkqqf4oWQii9LLfpFyzVsfQPShv2ZEyT-f2NP1IGPu1B8sj6pskfVDywltcc/exec';
+  const NAMA_KANTOR = 'Bea Cukai Belawan';
+  const BATAS_TUNGGU_MENIT = 15;  // pertanyaan menunggu lebih lama dari ini ditandai merah
+  const INTERVAL_DETIK = 30;      // cek pertanyaan baru tiap N detik
+
+  let PIN = '';
+  let timer = null;
+  let bukaId = null;
+  let detailNow = null;
+  let tabAktif = 'hari';
+  let idDikenal = null;  // untuk mendeteksi pertanyaan baru (bunyi notifikasi)
+  let audioCtx = null;
+
+  // Nama parameter untuk tiap aksi (urutan sama dengan argumen call())
+  const PARAM = {
+    getDashboard: [], getRiwayat: ['tgl'], getDetail: ['id'],
+    mulaiLayanan: ['id', 'petugas'], selesaiLayanan: ['id', 'petugas', 'jawaban'], simpanJawaban: ['id', 'jawaban']
+  };
+
+  // Memanggil Apps Script tanpa cookie => tidak terpengaruh akun Google yang sedang login
+  async function call(fn, ...args) {
+    const body = { action: fn, pin: PIN };
+    PARAM[fn].forEach((k, i) => body[k] = args[i]);
+    let out;
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body),
+        credentials: 'omit',
+        redirect: 'follow'
+      });
+      out = await res.json();
+    } catch (e) {
+      throw new Error('Gagal terhubung ke server. Periksa koneksi internet.');
+    }
+    if (!out.ok) throw new Error(out.error || 'Terjadi kesalahan.');
+    return out.data;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function durasiTeks(m) {
+    if (m == null) return '–';
+    if (m < 60) return m + ' mnt';
+    return Math.floor(m / 60) + ' j ' + Math.round(m % 60) + ' mnt';
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tglStr(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function hariIniStr() { return tglStr(new Date()); }
+  function tglPanjang(s) {
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  /* ---------- notifikasi bunyi ---------- */
+  function beep() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.25].forEach(t => {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.frequency.value = 880; o.connect(g); g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.25, audioCtx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.2);
+        o.start(audioCtx.currentTime + t); o.stop(audioCtx.currentTime + t + 0.2);
+      });
+    } catch (e) {}
+  }
+
+  /* ---------- login ---------- */
+  async function masuk() {
+    PIN = document.getElementById('pin').value.trim();
+    document.getElementById('loginErr').textContent = '';
+    try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    try {
+      await muat();
+      try { sessionStorage.setItem('pin', PIN); } catch (e) {}
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('tgl').value = hariIniStr();
+      document.getElementById('tgl').max = hariIniStr();
+      clearInterval(timer);
+      timer = setInterval(() => muat().catch(() => {}), INTERVAL_DETIK * 1000);
+    } catch (e) {
+      document.getElementById('loginErr').textContent = e.message;
+    }
+  }
+
+  function pindahTab(t) {
+    tabAktif = t;
+    document.getElementById('secHari').style.display = t === 'hari' ? 'block' : 'none';
+    document.getElementById('secRiwayat').style.display = t === 'riwayat' ? 'block' : 'none';
+    document.getElementById('tabHari').classList.toggle('on', t === 'hari');
+    document.getElementById('tabRiwayat').classList.toggle('on', t === 'riwayat');
+    if (t === 'riwayat') muatRiwayat();
+  }
+
+  function muatSemua() { muat(); if (tabAktif === 'riwayat') muatRiwayat(); }
+
+  /* ---------- tab hari ini ---------- */
+  async function muat() {
+    const d = await call('getDashboard');
+    document.getElementById('sHari').textContent = d.hariIni;
+    document.getElementById('sSelesai').textContent = d.selesaiHariIni + ' selesai dilayani hari ini';
+    document.getElementById('sRata').textContent = durasiTeks(d.rataHariIni);
+    document.getElementById('sRataAll').textContent = 'hari ini · keseluruhan: ' + durasiTeks(d.rataSemua);
+    document.getElementById('sBaru').textContent = d.belumDibaca.length;
+    document.getElementById('cBaru').textContent = d.belumDibaca.length;
+    document.getElementById('cProses').textContent = d.diproses.length;
+    document.getElementById('upd').textContent = 'Diperbarui ' + d.diperbarui + ' · otomatis tiap ' + INTERVAL_DETIK + ' detik';
+    renderList('lBaru', d.belumDibaca, false, 'Tidak ada pertanyaan baru 🎉');
+    renderList('lProses', d.diproses, true, 'Tidak ada layanan yang sedang berjalan');
+    document.title = (d.belumDibaca.length ? '(' + d.belumDibaca.length + ') ' : '') + 'Dashboard Layanan Informasi';
+
+    // bunyi jika ada pertanyaan baru sejak pengecekan terakhir
+    const ids = new Set(d.belumDibaca.map(r => r.id));
+    if (idDikenal && [...ids].some(id => !idDikenal.has(id))) beep();
+    idDikenal = new Set([...(idDikenal || []), ...ids]);
+  }
+
+  function renderList(elId, items, proses, kosong) {
+    const el = document.getElementById(elId);
+    if (!items.length) { el.innerHTML = '<div class="empty">' + kosong + '</div>'; return; }
+    const now = Date.now();
+    el.innerHTML = items.map(r => {
+      const tunggu = r.masukMs ? Math.floor((now - r.masukMs) / 60000) : null;
+      const lama = !proses && tunggu != null && tunggu >= BATAS_TUNGGU_MENIT;
+      return `
+      <div class="item ${proses ? 'proses' : ''} ${lama ? 'lama' : ''}" onclick="buka('${esc(r.id)}')">
+        <div class="top"><b><span class="no">${esc(r.antrian)}</span> ${esc(r.nama)}</b>
+          <span class="time">${esc(r.masuk)}${!proses && tunggu != null ? '<span class="wait">menunggu ' + tunggu + ' mnt</span>' : ''}</span></div>
+        <div class="ins">${esc(r.instansi)} ${proses ? '<span class="badge">' + esc(r.status) + '</span>' + (r.petugas ? ' · ' + esc(r.petugas) : '') : ''}</div>
+        <div class="q">${esc(r.pertanyaan)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ---------- tab riwayat ---------- */
+  function setTgl(s) { document.getElementById('tgl').value = s; muatRiwayat(); }
+  function geserTgl(n) {
+    const v = document.getElementById('tgl').value || hariIniStr();
+    const [y, m, d] = v.split('-').map(Number);
+    const t = new Date(y, m - 1, d + n);
+    if (tglStr(t) > hariIniStr()) return;
+    setTgl(tglStr(t));
+  }
+
+  async function muatRiwayat() {
+    const tgl = document.getElementById('tgl').value;
+    if (!tgl) return;
+    const body = document.getElementById('rBody');
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8">Memuat...</td></tr>';
+    try {
+      const r = await call('getRiwayat', tgl);
+      document.getElementById('rTotal').textContent = r.total;
+      document.getElementById('rTglTeks').textContent = tglPanjang(tgl);
+      document.getElementById('rSelesai').textContent = r.selesai;
+      document.getElementById('rBelum').textContent = r.belum + ' belum selesai';
+      document.getElementById('rRata').textContent = durasiTeks(r.rata);
+      body.innerHTML = r.list.length ? r.list.map(x => `
+        <tr onclick="buka('${esc(x.id)}')">
+          <td><span class="no">${esc(x.antrian)}</span></td>
+          <td>${esc(x.masuk.slice(11))}</td>
+          <td><b>${esc(x.nama)}</b><br><span style="color:#64748b;font-size:12px">${esc(x.instansi)}</span></td>
+          <td class="clip">${esc(x.pertanyaan)}</td>
+          <td class="clip">${esc(x.jawaban) || '<span style="color:#94a3b8">–</span>'}</td>
+          <td>${esc(x.petugas) || '–'}</td>
+          <td>${durasiTeks(x.durasi)}</td>
+          <td><span class="badge ${esc(x.status)}">${esc(x.status)}</span></td>
+        </tr>`).join('')
+        : '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px">Tidak ada layanan pada tanggal ini</td></tr>';
+    } catch (e) {
+      body.innerHTML = '<tr><td colspan="8" class="err">' + esc(e.message) + '</td></tr>';
+    }
+  }
+
+  /* ---------- detail ---------- */
+  async function buka(id) {
+    bukaId = id;
+    document.getElementById('detail').innerHTML = 'Memuat...';
+    document.getElementById('modal').style.display = 'flex';
+    try { tampilDetail(await call('getDetail', id)); muat(); }
+    catch (e) { document.getElementById('detail').innerHTML = '<div class="err">' + esc(e.message) + '</div>'; }
+  }
+
+  function namaPetugas() { try { return sessionStorage.getItem('petugas') || ''; } catch (e) { return ''; } }
+
+  function nomorWa(hp) {
+    let wa = String(hp).replace(/\D/g, '');
+    if (wa.startsWith('0')) wa = '62' + wa.slice(1);
+    return wa;
+  }
+
+  function linkWa() {
+    const r = detailNow; if (!r) return '#';
+    const jwb = (document.getElementById('jawaban') || {}).value || r.jawaban || '';
+    const ptg = r.petugas || ((document.getElementById('petugas') || {}).value) || '';
+    const teks =
+      'Yth. Bapak/Ibu ' + r.nama + ',\n' +
+      'Terima kasih telah menghubungi Layanan Informasi ' + NAMA_KANTOR + '.\n\n' +
+      '*Pertanyaan:*\n' + r.pertanyaan + '\n\n' +
+      '*Jawaban:*\n' + (jwb || '...') + '\n\n' +
+      'Salam,\n' + (ptg ? ptg + '\n' : '') + 'Layanan Informasi ' + NAMA_KANTOR;
+    return 'https://wa.me/' + nomorWa(r.hp) + '?text=' + encodeURIComponent(teks);
+  }
+  function perbaruiWa() { const a = document.getElementById('waBtn'); if (a) a.href = linkWa(); }
+
+  function tampilDetail(r) {
+    detailNow = r;
+    const selesai = !!r.selesai;
+    document.getElementById('detail').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <b style="font-size:16px">Detail Pertanyaan</b><span class="badge ${esc(r.status)}">${esc(r.status)}</span>
+      </div>
+      <div class="row"><div class="k">Nomor Antrian</div><div class="v"><span class="no big">${esc(r.antrian)}</span></div></div>
+      <div class="row"><div class="k">Nama</div><div class="v">${esc(r.nama)}</div></div>
+      <div class="row"><div class="k">Asal PT / Instansi</div><div class="v">${esc(r.instansi)}</div></div>
+      <div class="row"><div class="k">Nomor HP</div><div class="v">${esc(r.hp)}</div></div>
+      <div class="row"><div class="k">Pertanyaan</div><div class="v qbox">${esc(r.pertanyaan)}</div></div>
+      <div class="times">
+        <div>Masuk<b>${esc(r.masuk) || '–'}</b></div>
+        <div>Mulai<b>${esc(r.mulai) || '–'}</b></div>
+        <div>Selesai<b>${esc(r.selesai) || '–'}</b></div>
+      </div>
+      ${r.durasi != null ? '<div class="row"><div class="k">Durasi Layanan</div><div class="v"><b>' + durasiTeks(r.durasi) + '</b></div></div>' : ''}
+      <div class="row"><div class="k">Nama Petugas</div>
+        ${r.petugas
+          ? '<div class="v"><b>' + esc(r.petugas) + '</b></div>'
+          : '<input id="petugas" placeholder="Ketik nama petugas yang melayani" value="' + esc(namaPetugas()) + '" oninput="perbaruiWa()">'}
+      </div>
+      <div class="row"><div class="k">Jawaban Ringkas</div>
+        <textarea id="jawaban" maxlength="3000" placeholder="Tulis ringkasan jawaban yang diberikan kepada penanya" oninput="perbaruiWa()">${esc(r.jawaban)}</textarea>
+        <div class="hint">Wajib diisi sebelum klik "Selesai Layanan". Tetap bisa diubah setelahnya.</div>
+      </div>
+      <div class="actions">
+        <button class="btn b-blue" onclick="aksi('mulaiLayanan')" ${r.mulai ? 'disabled' : ''}>▶ Mulai Layanan</button>
+        ${selesai
+          ? '<button class="btn b-green" onclick="aksi(\'simpanJawaban\')">💾 Simpan Jawaban</button>'
+          : '<button class="btn b-green" onclick="aksi(\'selesaiLayanan\')" ' + (!r.mulai ? 'disabled' : '') + '>✔ Selesai Layanan</button>'}
+        <a class="btn b-wa" id="waBtn" target="_blank" href="#">Kirim via WhatsApp</a>
+        <button class="btn b-gray" onclick="tutup()">Tutup</button>
+      </div>
+      <div class="err" id="aksiErr"></div>`;
+    perbaruiWa();
+  }
+
+  async function aksi(fn) {
+    const err = document.getElementById('aksiErr');
+    err.textContent = ''; err.classList.remove('ok');
+    const inp = document.getElementById('petugas');
+    const petugas = inp ? inp.value.trim() : (detailNow.petugas || '');
+    const jawaban = (document.getElementById('jawaban') || {}).value || '';
+
+    if (fn === 'mulaiLayanan' && inp && !petugas) { err.textContent = 'Isi Nama Petugas terlebih dahulu.'; inp.focus(); return; }
+    if (fn === 'selesaiLayanan' && !jawaban.trim()) { err.textContent = 'Isi Jawaban Ringkas terlebih dahulu.'; document.getElementById('jawaban').focus(); return; }
+    if (petugas) { try { sessionStorage.setItem('petugas', petugas); } catch (e) {} }
+
+    document.querySelectorAll('.actions .btn').forEach(b => b.disabled = true);
+    try {
+      let r;
+      if (fn === 'mulaiLayanan') r = await call(fn, bukaId, petugas);
+      else if (fn === 'selesaiLayanan') r = await call(fn, bukaId, petugas, jawaban);
+      else r = await call('simpanJawaban', bukaId, jawaban);
+      tampilDetail(r);
+      if (fn === 'simpanJawaban') { const e2 = document.getElementById('aksiErr'); e2.textContent = 'Jawaban tersimpan.'; e2.classList.add('ok'); }
+      muat();
+      if (tabAktif === 'riwayat') muatRiwayat();
+    } catch (e) {
+      document.querySelectorAll('.actions .btn').forEach(b => b.disabled = false);
+      err.textContent = e.message;
+    }
+  }
+
+  function tutup() { document.getElementById('modal').style.display = 'none'; bukaId = null; detailNow = null; }
+
+  // login otomatis jika PIN masih tersimpan di sesi browser ini
+  try {
+    const p = sessionStorage.getItem('pin');
+    if (p) { document.getElementById('pin').value = p; masuk(); }
+  } catch (e) {}
+</script>
+</body>
+</html>
